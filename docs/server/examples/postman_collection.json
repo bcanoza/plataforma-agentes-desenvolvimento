@@ -1,0 +1,62 @@
+{
+  "info": {
+    "name": "UI v7 Server",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base}}/v1/auth/login",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Refresh",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base}}/v1/auth/refresh",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "v1",
+            "auth",
+            "refresh"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Me",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base}}/v1/users/me",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "v1",
+            "users",
+            "me"
+          ]
+        }
+      }
+    }
+  ]
+}

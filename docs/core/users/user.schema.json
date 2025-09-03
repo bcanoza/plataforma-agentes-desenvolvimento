@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UserPublic",
+  "type": "object",
+  "required": [
+    "id",
+    "login",
+    "isAdmin",
+    "status",
+    "ui",
+    "modules"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "login": {
+      "type": "string"
+    },
+    "nome": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "whatsapp": {
+      "type": "string"
+    },
+    "isAdmin": {
+      "type": "boolean"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "disabled"
+      ]
+    },
+    "ui": {
+      "type": "object",
+      "properties": {
+        "themePreferred": {
+          "type": "string",
+          "enum": [
+            "vscode",
+            "light",
+            "dark"
+          ]
+        },
+        "moduleOrder": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "iconOrder": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

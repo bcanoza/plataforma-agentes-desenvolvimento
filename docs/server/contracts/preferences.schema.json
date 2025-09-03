@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PreferencesSchema",
+  "type": "object",
+  "properties": {
+    "themePreferred": {
+      "type": "string",
+      "enum": [
+        "vscode",
+        "light",
+        "dark"
+      ]
+    },
+    "moduleOrder": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "iconOrder": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TokensServerSchema",
+  "type": "object",
+  "properties": {
+    "accessTokenClaims": {
+      "type": "object",
+      "required": [
+        "iss",
+        "aud",
+        "sub",
+        "iat",
+        "exp",
+        "jti",
+        "sid",
+        "ver",
+        "roles"
+      ],
+      "properties": {
+        "iss": {
+          "type": "string"
+        },
+        "aud": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sub": {
+          "type": "string"
+        },
+        "iat": {
+          "type": "integer"
+        },
+        "exp": {
+          "type": "integer"
+        },
+        "jti": {
+          "type": "string"
+        },
+        "sid": {
+          "type": "string"
+        },
+        "ver": {
+          "type": "integer"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "amr": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "auth_time": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "refreshToken": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "sid": {
+          "type": "string"
+        },
+        "issuedAt": {
+          "type": "string"
+        },
+        "expiresAt": {
+          "type": "string"
+        },
+        "revokedAt": {
+          "type": "string"
+        },
+        "userAgent": {
+          "type": "string"
+        },
+        "clientIp": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

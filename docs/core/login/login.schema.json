@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LoginContracts",
+  "type": "object",
+  "properties": {
+    "loginRequest": {
+      "type": "object",
+      "required": [
+        "login",
+        "senha"
+      ],
+      "properties": {
+        "login": {
+          "type": "string",
+          "minLength": 1
+        },
+        "senha": {
+          "type": "string",
+          "minLength": 4
+        }
+      }
+    },
+    "loginResponse": {
+      "type": "object",
+      "required": [
+        "accessToken",
+        "accessTokenExpiresIn",
+        "user"
+      ],
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "accessTokenExpiresIn": {
+          "type": "integer"
+        },
+        "refreshToken": {
+          "type": "string"
+        },
+        "refreshTokenExpiresIn": {
+          "type": "integer"
+        },
+        "user": {
+          "$ref": "../users/user.schema.json"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

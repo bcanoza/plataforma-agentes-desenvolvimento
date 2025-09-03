@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UI v7 – Documentação</title>
+  <style>
+    body{font-family:-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;margin:0;display:flex;min-height:100vh}
+    aside{width:320px;background:#0f172a;color:#e2e8f0;padding:20px;box-sizing:border-box;overflow:auto}
+    main{flex:1;padding:24px;box-sizing:border-box;overflow:auto}
+    h1{margin:0 0 12px 0;font-size:20px}
+    a{color:#38bdf8;text-decoration:none}
+    ul{line-height:1.6}
+    .sect{margin-top:16px}
+    .muted{color:#94a3b8;font-size:12px}
+  </style>
+</head>
+<body>
+  <aside>
+    <h1>UI v7 – Docs</h1>
+    <div class="muted">Abra os arquivos Markdown/JSON/YAML diretamente.</div>
+    <div class="sect"><strong>Arquitetura</strong>
+      <ul>
+        <li><a href="../arch/overview.md">overview.md</a></li>
+        <li><a href="../arch/security.md">security.md</a></li>
+        <li><a href="../arch/decisions.md">decisions.md</a></li>
+      </ul>
+    </div>
+    <div class="sect"><strong>Core</strong>
+      <ul>
+        <li><a href="../core/build_instruction.md">build_instruction.md</a></li>
+        <li><a href="../core/core.api.md">core.api.md</a></li>
+        <li><a href="../core/core.config.schema.json">core.config.schema.json</a></li>
+        <li><a href="../core/core.events.schema.json">core.events.schema.json</a></li>
+        <li><a href="../core/events.md">events.md</a></li>
+        <li><a href="../core/login/overview.md">login/overview.md</a></li>
+        <li><a href="../core/login/login.schema.json">login/login.schema.json</a></li>
+        <li><a href="../core/login/login.flows.md">login/login.flows.md</a></li>
+        <li><a href="../core/login/errors.md">login/errors.md</a></li>
+        <li><a href="../core/main/overview.md">main/overview.md</a></li>
+        <li><a href="../core/main/main.runtime.md">main/main.runtime.md</a></li>
+        <li><a href="../core/users/user.schema.json">users/user.schema.json</a></li>
+        <li><a href="../core/users/overview.md">users/overview.md</a></li>
+        <li><a href="../core/ui/ui.md">ui/ui.md</a></li>
+      </ul>
+    </div>
+    <div class="sect"><strong>Módulos</strong>
+      <ul>
+        <li><a href="../modules/build_instruction.md">build_instruction.md</a></li>
+        <li><a href="../modules/module.schema.json">module.schema.json</a></li>
+        <li><a href="../modules/guide.md">guide.md</a></li>
+        <li><a href="../modules/policies.md">policies.md</a></li>
+        <li><a href="../modules/examples.md">examples.md</a></li>
+      </ul>
+    </div>
+    <div class="sect"><strong>Servidor</strong>
+      <ul>
+        <li><a href="../server/build_instruction.md">build_instruction.md</a></li>
+        <li><a href="../server/overview.md">overview.md</a></li>
+        <li><a href="../server/requirements.md">requirements.md</a></li>
+        <li><a href="../server/security.md">security.md</a></li>
+        <li><a href="../server/config.md">config.md</a></li>
+        <li><a href="../server/errors.md">errors.md</a></li>
+        <li><a href="../server/qa_checklist.md">qa_checklist.md</a></li>
+        <li><a href="../server/contracts/openapi.yaml">contracts/openapi.yaml</a></li>
+        <li><a href="../server/contracts/auth.schema.json">contracts/auth.schema.json</a></li>
+        <li><a href="../server/contracts/user.schema.json">contracts/user.schema.json</a></li>
+        <li><a href="../server/contracts/preferences.schema.json">contracts/preferences.schema.json</a></li>
+        <li><a href="../server/contracts/modules.schema.json">contracts/modules.schema.json</a></li>
+        <li><a href="../server/contracts/tokens.schema.json">contracts/tokens.schema.json</a></li>
+        <li><a href="../server/contracts/errors.schema.json">contracts/errors.schema.json</a></li>
+        <li><a href="../server/endpoints/auth.md">endpoints/auth.md</a></li>
+        <li><a href="../server/endpoints/users.md">endpoints/users.md</a></li>
+        <li><a href="../server/endpoints/preferences.md">endpoints/preferences.md</a></li>
+        <li><a href="../server/endpoints/modules.md">endpoints/modules.md</a></li>
+        <li><a href="../server/endpoints/system.md">endpoints/system.md</a></li>
+        <li><a href="../server/data_models/users.md">data_models/users.md</a></li>
+        <li><a href="../server/data_models/sessions.md">data_models/sessions.md</a></li>
+        <li><a href="../server/data_models/auditing.md">data_models/auditing.md</a></li>
+        <li><a href="../server/data_models/indices.md">data_models/indices.md</a></li>
+        <li><a href="../server/ops/deployment.md">ops/deployment.md</a></li>
+        <li><a href="../server/ops/maintenance.md">ops/maintenance.md</a></li>
+        <li><a href="../server/ops/observability.md">ops/observability.md</a></li>
+      </ul>
+    </div>
+    <div class="sect"><strong>Ops & Site</strong>
+      <ul>
+        <li><a href="../ops/qa-checklist.md">ops/qa-checklist.md</a></li>
+        <li><a href="../ops/release.md">ops/release.md</a></li>
+        <li><a href="navigation.md">site/navigation.md</a></li>
+        <li><a href="theming.md">site/theming.md</a></li>
+      </ul>
+    </div>
+  </aside>
+  <main>
+    <h2>UI v7 – Site da Documentação</h2>
+    <p>Use os links no menu para abrir os arquivos Markdown/JSON/YAML. Integre com seu gerador favorito (MkDocs/Docusaurus) quando desejar.</p>
+  </main>
+</body>
+</html>

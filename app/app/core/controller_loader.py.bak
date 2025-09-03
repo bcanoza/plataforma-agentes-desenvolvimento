@@ -1,0 +1,135 @@
+# app/core/controller_loader.py
+from __future__ import annotations
+
+import importlib
+import pkgutil
+import sys
+import logging
+from typing import List
+
+from fastapi import FastAPI
+from app.config import settings
+
+logger = logging.getLogger(getattr(settings, "LOGGER_NAME", "assistente"))
+
+DEFAULT_PACKAGE: str = getattr(settings, "CONTROLLERS_PACKAGE", "app.controllers")
+CONTROLLER_SUFFIX: str = getattr(settings, "CONTROLLER_SUFFIX", "_controller.py")
+
+# Registro interno de módulos já incluídos (evita duplicidade de include_router)
+_loaded_modules: set[str] = set()
+
+
+def _iter_controller_modules(package_name: str) -> List[str]:
+    """Rescaneia o pacote e retorna módulos cujo arquivo termina com CONTROLLER_SUFFIX."""
+    importlib.invalidate_caches()
+    pkg = importlib.import_module(package_name)
+    modules: List[str] = []
+
+    for m in pkgutil.iter_modules(pkg.__path__, prefix=package_name + "."):
+        try:
+            spec = importlib.util.find_spec(m.name)
+            if not spec or not getattr(spec, "origin", None):
+                continue
+            origin = spec.origin
+            if origin.endswith(CONTROLLER_SUFFIX):
+                modules.append(m.name)
+        except Exception as e:
+            logger.warning("[controller_loader] falha inspecionando %s: %s", m.name, e)
+
+    modules.sort()
+    return modules
+
+
+def _clear_sys_modules_for(package_name: str) -> int:
+    """
+    Remove do sys.modules todos os módulos cujo nome começa com `package_name`.
+    Retorna a contagem de módulos removidos (para logging/diagnóstico).
+    """
+    to_del = [m for m in list(sys.modules.keys()) if m == package_name or m.startswith(package_name + ".")]
+    for m in to_del:
+        try:
+            del sys.modules[m]
+        except Exception:
+            pass
+    return len(to_del)
+
+
+def load_controllers(
+    app: FastAPI,
+    package_name: str = DEFAULT_PACKAGE,
+    *,
+    rescan: bool = True,
+    clear_module_cache: bool = False,
+) -> List[str]:
+    """
+    Carrega (ou recarrega) controllers do pacote informado.
+    - rescan=True  → percorre o diretório a CADA chamada (vê arquivos novos).
+    - clear_module_cache=True → remove módulos do sys.modules antes de importar.
+
+    Retorna a lista de módulos efetivamente incluídos **nesta chamada**.
+    """
+    logger.info(
+        "[controller_loader] load_controllers(rescan=%s, clear_module_cache=%s, package=%s)",
+        rescan, clear_module_cache, package_name
+    )
+
+    module_names = _iter_controller_modules(package_name) if rescan else list(_loaded_modules)
+    loaded_now: List[str] = []
+
+    for mod_name in module_names:
+        try:
+            if clear_module_cache:
+                # se for full, garantimos import limpo
+                if mod_name in sys.modules:
+                    del sys.modules[mod_name]
+
+            module = importlib.import_module(mod_name)
+
+            # reload suave quando não limpamos cache
+            if not clear_module_cache and mod_name in sys.modules:
+                module = importlib.reload(module)
+
+            router = getattr(module, "router", None)
+            if router is None:
+                logger.debug("[controller_loader] ignorando %s (sem `router`)", mod_name)
+                continue
+
+            if mod_name in _loaded_modules:
+                logger.debug("[controller_loader] já carregado: %s (skip include)", mod_name)
+                continue
+
+            app.include_router(router)
+            _loaded_modules.add(mod_name)
+            loaded_now.append(mod_name)
+            logger.info("[controller_loader] loaded: %s", mod_name)
+
+        except Exception as e:
+            logger.error("[controller_loader] erro importando %s: %s", mod_name, e)
+
+    if not loaded_now:
+        logger.info("[controller_loader] nenhum novo controller incluído (total atual=%d)", len(_loaded_modules))
+    return loaded_now
+
+
+def include_controllers(app: FastAPI) -> List[str]:
+    """Startup: rescan inicial sem limpar cache (rápido)."""
+    return load_controllers(app, DEFAULT_PACKAGE, rescan=True, clear_module_cache=False)
+
+
+def reload_controllers(app: FastAPI, *, full: bool = True) -> List[str]:
+    """
+    Recarrega controllers com RESCAN do diretório `app/controllers`.
+
+    - full=False → reload "suave" (mantém sys.modules, evita duplicidade)
+    - full=True  → *limpa* sys.modules dos controllers + *zera* _loaded_modules,
+                   então rescaneia e inclui novamente os routers.
+
+    Retorna a lista de módulos *novos* incluídos nesta chamada.
+    """
+    if full:
+        removed = _clear_sys_modules_for(DEFAULT_PACKAGE)
+        logger.info("[controller_loader] full reload: sys.modules limpos (%d módulos)", removed)
+        _loaded_modules.clear()
+        logger.info("[controller_loader] full reload: registro interno resetado")
+
+    return load_controllers(app, DEFAULT_PACKAGE, rescan=True, clear_module_cache=full)

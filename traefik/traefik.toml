@@ -1,0 +1,32 @@
+[global]
+  sendAnonymousUsage = false
+  checkNewVersion = false
+
+[log]
+  level = "INFO"
+  filePath = "/traefik.log"
+  format = "common"
+
+[accessLog]
+  filePath = "/access.log"
+  bufferingSize = 100
+
+[entryPoints]
+  [entryPoints.web]
+    address = ":80"
+    [entryPoints.web.http.redirections.entryPoint]
+      to = "websecure"
+      scheme = "https"
+
+  [entryPoints.websecure]
+    address = ":443"
+
+[providers]
+
+  [providers.docker]
+    exposedByDefault = false
+    network = "web"
+
+  [providers.file]
+    filename = "/traefik_dynamic.toml"
+    watch = true

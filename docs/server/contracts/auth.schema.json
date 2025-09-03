@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AuthContracts",
+  "type": "object",
+  "properties": {
+    "loginRequest": {
+      "type": "object",
+      "required": [
+        "login",
+        "senha"
+      ],
+      "properties": {
+        "login": {
+          "type": "string"
+        },
+        "senha": {
+          "type": "string",
+          "minLength": 4
+        }
+      }
+    },
+    "loginResponse": {
+      "type": "object",
+      "required": [
+        "accessToken",
+        "accessTokenExpiresIn",
+        "user"
+      ],
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "accessTokenExpiresIn": {
+          "type": "integer"
+        },
+        "refreshToken": {
+          "type": "string"
+        },
+        "refreshTokenExpiresIn": {
+          "type": "integer"
+        },
+        "user": {
+          "$ref": "user.schema.json"
+        }
+      }
+    },
+    "refreshResponse": {
+      "type": "object",
+      "required": [
+        "accessToken",
+        "accessTokenExpiresIn"
+      ],
+      "properties": {
+        "accessToken": {
+          "type": "string"
+        },
+        "accessTokenExpiresIn": {
+          "type": "integer"
+        },
+        "refreshToken": {
+          "type": "string"
+        },
+        "refreshTokenExpiresIn": {
+          "type": "integer"
+        }
+      }
+    },
+    "logoutResponse": {
+      "type": "object",
+      "required": [
+        "ok"
+      ],
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

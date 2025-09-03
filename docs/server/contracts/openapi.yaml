@@ -1,0 +1,225 @@
+openapi: 3.0.3
+info:
+  title: UI v7 Server API
+  version: "1.0.0"
+servers:
+  - url: https://api.nos.com/v1
+paths:
+  /auth/login:
+    post:
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '4XX':
+          $ref: '#/components/responses/Error'
+  /auth/refresh:
+    post:
+      summary: Refresh tokens
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+        '4XX':
+          $ref: '#/components/responses/Error'
+  /auth/logout:
+    post:
+      summary: Logout
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+  /users/me:
+    get:
+      summary: Perfil do usuário autenticado
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPublic'
+  /users/me/preferences:
+    get:
+      summary: Preferências do usuário
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Preferences'
+    put:
+      summary: Atualiza preferências
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Preferences'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Preferences'
+  /modules:
+    get:
+      summary: Lista manifestos de módulos
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ModuleManifest'
+  /users/me/modules:
+    get:
+      summary: Módulos opcionais habilitados
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserModules'
+    put:
+      summary: Atualiza módulos opcionais habilitados
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserModules'
+      responses:
+        '200':
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserModules'
+components:
+  responses:
+    Error:
+      description: Erro
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    LoginRequest:
+      type: object
+      required: [login, senha]
+      properties:
+        login: { type: string }
+        senha: { type: string, minLength: 4 }
+    LoginResponse:
+      type: object
+      required: [accessToken, accessTokenExpiresIn, user]
+      properties:
+        accessToken: { type: string }
+        accessTokenExpiresIn: { type: integer }
+        refreshToken: { type: string }
+        refreshTokenExpiresIn: { type: integer }
+        user: { $ref: '#/components/schemas/UserPublic' }
+    RefreshResponse:
+      type: object
+      required: [accessToken, accessTokenExpiresIn]
+      properties:
+        accessToken: { type: string }
+        accessTokenExpiresIn: { type: integer }
+        refreshToken: { type: string }
+        refreshTokenExpiresIn: { type: integer }
+    LogoutResponse:
+      type: object
+      required: [ok]
+      properties:
+        ok: { type: boolean }
+    UserPublic:
+      type: object
+      required: [id, login, isAdmin, status, ui, modules]
+      properties:
+        id: { type: string }
+        login: { type: string }
+        nome: { type: string }
+        email: { type: string }
+        whatsapp: { type: string }
+        isAdmin: { type: boolean }
+        status: { type: string, enum: [active, disabled] }
+        ui:
+          type: object
+          properties:
+            themePreferred: { type: string, enum: [vscode, light, dark] }
+            moduleOrder:
+              type: array
+              items: { type: string }
+            iconOrder:
+              type: array
+              items: { type: string }
+        modules:
+          type: array
+          items: { type: string }
+    Preferences:
+      type: object
+      properties:
+        themePreferred: { type: string, enum: [vscode, light, dark] }
+        moduleOrder:
+          type: array
+          items: { type: string }
+        iconOrder:
+          type: array
+          items: { type: string }
+    ModuleManifest:
+      type: object
+      required: [id, name, kind, version, order, buttons]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        kind: { type: string, enum: [system, admin, optional] }
+        version: { type: string }
+        order: { type: integer }
+        buttons:
+          type: array
+          items:
+            type: object
+            required: [id, label, route]
+            properties:
+              id: { type: string }
+              label: { type: string }
+              route: { type: string }
+              icon: { type: string }
+              order: { type: integer }
+    UserModules:
+      type: object
+      required: [modules]
+      properties:
+        modules:
+          type: array
+          items: { type: string }
+    ErrorResponse:
+      type: object
+      required: [error, message]
+      properties:
+        error: { type: string }
+        message: { type: string }
+        details: { type: object }
+        traceId: { type: string }

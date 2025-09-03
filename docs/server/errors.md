@@ -1,0 +1,5 @@
+# Servidor – Erros
+
+Erro padronizado: `{ error, message, details?, traceId? }`.
+
+Principais códigos: `ERR_USER_NOT_FOUND`, `ERR_INVALID_SENHA`, `ERR_USER_DISABLED`, `ERR_REFRESH_INVALID`, `ERR_REFRESH_EXPIRED`, `ERR_REFRESH_REVOKED`, `ERR_UNAUTHORIZED`, `ERR_FORBIDDEN`, `ERR_VALIDATION`, `ERR_CONFLICT`, `ERR_RATE_LIMITED`, `ERR_INTERNAL`.

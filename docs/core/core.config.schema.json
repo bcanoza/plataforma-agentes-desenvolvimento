@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CoreConfig",
+  "type": "object",
+  "properties": {
+    "auth": {
+      "type": "object",
+      "properties": {
+        "baseUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "endpoints": {
+          "type": "object",
+          "properties": {
+            "login": {
+              "type": "string",
+              "default": "/v1/auth/login"
+            },
+            "refresh": {
+              "type": "string",
+              "default": "/v1/auth/refresh"
+            },
+            "logout": {
+              "type": "string",
+              "default": "/v1/auth/logout"
+            }
+          },
+          "required": [
+            "login",
+            "refresh",
+            "logout"
+          ]
+        }
+      },
+      "required": [
+        "baseUrl",
+        "endpoints"
+      ]
+    },
+    "session": {
+      "type": "object",
+      "properties": {
+        "accessTtlSec": {
+          "type": "integer",
+          "default": 900
+        },
+        "refreshTtlSec": {
+          "type": "integer",
+          "default": 1209600
+        },
+        "refreshAheadSec": {
+          "type": "integer",
+          "default": 60
+        },
+        "inactivityTimeoutSec": {
+          "type": "integer",
+          "default": 1800
+        },
+        "multiTabSync": {
+          "type": "boolean",
+          "default": true
+        },
+        "refreshTransport": {
+          "type": "string",
+          "enum": [
+            "cookie",
+            "body"
+          ],
+          "default": "cookie"
+        }
+      },
+      "required": [
+        "accessTtlSec",
+        "refreshTtlSec"
+      ]
+    }
+  },
+  "required": [
+    "auth",
+    "session"
+  ]
+}
