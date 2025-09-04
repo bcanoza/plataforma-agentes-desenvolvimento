@@ -11,21 +11,20 @@ services:
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"  # Dashboard do Traefik
+      - "8080:8080"  # Dashboard
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./config/traefik.toml:/traefik.toml:ro
-      - ./config/traefik_dynamic.toml:/traefik_dynamic.toml:ro
-      - ./config/acme.json:/acme.json
-      - ./certs:/certs:ro
+      - /home/docker/traefik/traefik.toml:/traefik.toml:ro
+      - /home/docker/traefik/traefik_dynamic.toml:/traefik_dynamic.toml:ro
+      - /home/docker/traefik/acme.json:/acme.json
+      - /home/docker/traefik/certs:/certs:ro
     environment:
       - TZ=America/Sao_Paulo
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.rule=Host(`traefik.odontoapi.com`)"
       - "traefik.http.routers.traefik.tls=true"
-      - "traefik.http.services.traefik.loadbalancer.server.port=8080"
     logging:
       driver: "json-file"
       options:
@@ -39,8 +38,9 @@ services:
     restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - portainer_data:/data
+      - /home/docker/portainer/data:/data
     ports:
+      - "8000:8000"
       - "9000:9000"
       - "9443:9443"
     networks:
@@ -58,9 +58,6 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-
-volumes:
-  portainer_data:
 
 networks:
   web:

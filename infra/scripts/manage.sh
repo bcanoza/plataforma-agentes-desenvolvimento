@@ -1,229 +1,152 @@
 #!/bin/bash
-# Script principal de gerenciamento da infraestrutura
-set -e
+# Gerenciador Principal da Infraestrutura Assistente
+
+clear
+echo "🤖 Gerenciador da Aplicação Assistente"
+echo "======================================"
+echo ""
+echo "📍 Localização: $(pwd)"
+echo ""
+
+# Verificar se estamos no lugar certo
+if [ ! -f "../apps/assistente/docker-compose.yml" ]; then
+    echo "❌ Execute este script de: infra/scripts/"
+    exit 1
+fi
 
 # Cores
-RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
+RED='\033[0;31m'
 NC='\033[0m'
 
-# Banner
-show_banner() {
-    clear
-    echo -e "${BLUE}"
-    echo "╔══════════════════════════════════════════════════════════════════╗"
-    echo "║                  🏗️ INFRAESTRUTURA ASSISTENTE 🏗️                  ║"
-    echo "║                                                                  ║"
-    echo "║            Gerenciador Centralizado Docker Compose              ║"
-    echo "╚══════════════════════════════════════════════════════════════════╝"
-    echo -e "${NC}"
-}
+log() { echo -e "${GREEN}[$(date '+%H:%M:%S')]${NC} $1"; }
+warn() { echo -e "${YELLOW}⚠️${NC} $1"; }
+error() { echo -e "${RED}❌${NC} $1"; }
 
-# Menu principal
-show_menu() {
-    echo ""
-    echo -e "${GREEN}🎮 OPERAÇÕES DISPONÍVEIS:${NC}"
-    echo ""
-    echo "  📦 DEPLOY"
-    echo "    1) deploy-all     - Deploy completo (base + aplicação + email)"
-    echo "    2) deploy-base    - Deploy apenas infraestrutura base"
-    echo "    3) deploy-app     - Deploy apenas aplicação assistente"
-    echo "    4) deploy-email   - Deploy apenas servidor email"
-    echo ""
-    echo "  🛑 CONTROLE"
-    echo "    5) stop-all       - Parar todos os serviços"
-    echo "    6) stop-app       - Parar apenas aplicação"
-    echo "    7) restart-app    - Reiniciar aplicação"
-    echo ""
-    echo "  📊 MONITORAMENTO"
-    echo "    8) status         - Status geral dos serviços"
-    echo "    9) logs           - Visualizar logs (interativo)"
-    echo "   10) monitor        - Monitor em tempo real"
-    echo ""
-    echo "  💾 BACKUP/RESTORE"
-    echo "   11) backup         - Backup completo"
-    echo "   12) cleanup        - Limpeza de containers/volumes órfãos"
-    echo ""
-    echo "  🔧 MANUTENÇÃO"
-    echo "   13) update         - Atualizar imagens"
-    echo "   14) rebuild        - Rebuild completo"
-    echo ""
-    echo "   0) Sair"
-    echo ""
-    echo -n -e "${YELLOW}Escolha uma opção [0-14]: ${NC}"
-}
+echo "📋 OPERAÇÕES DISPONÍVEIS:"
+echo ""
+echo "  🚀 APLICAÇÃO"
+echo "    1) start-app      - Iniciar aplicação Assistente"
+echo "    2) stop-app       - Parar aplicação"
+echo "    3) restart-app    - Reiniciar aplicação"
+echo "    4) rebuild-app    - Rebuild completo"
+echo ""
+echo "  🏗️ INFRAESTRUTURA"  
+echo "    5) start-base     - Iniciar base (Traefik + Portainer)"
+echo "    6) start-all      - Iniciar tudo (base + aplicação)"
+echo "    7) stop-all       - Parar tudo"
+echo ""
+echo "  📊 MONITORAMENTO"
+echo "    8) status         - Status geral"
+echo "    9) logs-api       - Logs da API"
+echo "   10) logs-worker    - Logs do Worker"
+echo "   11) logs-all       - Logs de todos"
+echo ""
+echo "  🔧 MANUTENÇÃO"
+echo "   12) scale-workers  - Escalar Workers"
+echo "   13) backup-db      - Backup PostgreSQL"
+echo "   14) connect-db     - Conectar PostgreSQL"
+echo ""
+echo "    0) Sair"
+echo ""
 
-# Funções de operação
-deploy_all() {
-    echo -e "${BLUE}🚀 Deploy Completo${NC}"
-    ./deploy.sh all
-}
+read -p "Escolha uma opção [0-14]: " choice
 
-deploy_base() {
-    echo -e "${BLUE}🏗️ Deploy Base${NC}"
-    cd ../base && docker-compose up -d
-    echo -e "${GREEN}✅ Infraestrutura base deployada${NC}"
-}
-
-deploy_app() {
-    echo -e "${BLUE}📱 Deploy Aplicação${NC}"
-    cd ../apps/assistente && docker-compose up -d
-    echo -e "${GREEN}✅ Aplicação deployada${NC}"
-}
-
-deploy_email() {
-    echo -e "${BLUE}📧 Deploy Email${NC}"
-    cd ../email && docker-compose up -d
-    echo -e "${GREEN}✅ Servidor email deployado${NC}"
-}
-
-stop_all() {
-    echo -e "${RED}🛑 Parando Todos os Serviços${NC}"
-    ./stop.sh
-}
-
-stop_app() {
-    echo -e "${YELLOW}⏹️ Parando Aplicação${NC}"
-    cd ../apps/assistente && docker-compose down
-    echo -e "${GREEN}✅ Aplicação parada${NC}"
-}
-
-restart_app() {
-    echo -e "${BLUE}🔄 Reiniciando Aplicação${NC}"
-    cd ../apps/assistente
-    docker-compose down
-    sleep 3
-    docker-compose up -d
-    echo -e "${GREEN}✅ Aplicação reiniciada${NC}"
-}
-
-show_status() {
-    echo -e "${BLUE}📊 Status dos Serviços${NC}"
-    ./monitor.sh
-}
-
-show_logs() {
-    echo -e "${BLUE}📋 Logs - Modo Interativo${NC}"
-    echo ""
-    echo "Serviços disponíveis:"
-    echo "  api worker beat flower postgres redis traefik email all"
-    echo ""
-    echo -n "Qual serviço? "
-    read service
-    echo -n "Seguir logs? [y/N] "
-    read follow
-    
-    if [ "$follow" == "y" ] || [ "$follow" == "Y" ]; then
-        ./logs.sh "$service" -f
-    else
-        ./logs.sh "$service"
-    fi
-}
-
-monitor_realtime() {
-    echo -e "${BLUE}📈 Monitor em Tempo Real${NC}"
-    watch -n 5 './monitor.sh'
-}
-
-run_backup() {
-    echo -e "${PURPLE}💾 Iniciando Backup${NC}"
-    ./backup.sh
-}
-
-cleanup_docker() {
-    echo -e "${YELLOW}🧹 Limpeza Docker${NC}"
-    echo -n "Remover containers parados? [y/N] "
-    read confirm1
-    if [ "$confirm1" == "y" ]; then
-        docker container prune -f
-    fi
-    
-    echo -n "Remover volumes órfãos? [y/N] "
-    read confirm2
-    if [ "$confirm2" == "y" ]; then
-        docker volume prune -f
-    fi
-    
-    echo -n "Remover images não utilizadas? [y/N] "
-    read confirm3
-    if [ "$confirm3" == "y" ]; then
-        docker image prune -a -f
-    fi
-    
-    echo -e "${GREEN}✅ Limpeza concluída${NC}"
-}
-
-update_images() {
-    echo -e "${BLUE}🔄 Atualizando Imagens${NC}"
-    
-    # Atualizar base
-    cd ../base && docker-compose pull && docker-compose up -d
-    
-    # Atualizar email
-    cd ../email && docker-compose pull && docker-compose up -d
-    
-    # Atualizar aplicação
-    cd ../apps/assistente && docker-compose pull && docker-compose up -d
-    
-    echo -e "${GREEN}✅ Imagens atualizadas${NC}"
-}
-
-rebuild_all() {
-    echo -e "${BLUE}🔨 Rebuild Completo${NC}"
-    echo -n "⚠️ Isso irá parar todos os serviços e fazer rebuild. Continuar? [y/N] "
-    read confirm
-    
-    if [ "$confirm" == "y" ]; then
-        ./stop.sh
-        sleep 5
-        
-        # Rebuild aplicação (que tem Dockerfile custom)
+case $choice in
+    1)
+        log "🚀 Iniciando aplicação..."
         cd ../apps/assistente
+        docker-compose up -d
+        log "✅ Aplicação iniciada!"
+        echo "🌐 API: http://localhost:7000"
+        echo "🌺 Flower: http://localhost:5555"
+        ;;
+    2)
+        log "🛑 Parando aplicação..."
+        cd ../apps/assistente
+        docker-compose down
+        log "✅ Aplicação parada!"
+        ;;
+    3)
+        log "🔄 Reiniciando aplicação..."
+        cd ../apps/assistente
+        docker-compose restart
+        log "✅ Aplicação reiniciada!"
+        ;;
+    4)
+        log "🔨 Rebuild completo..."
+        cd ../apps/assistente
+        docker-compose down
         docker-compose build --no-cache
-        cd ../../scripts
-        
-        ./deploy.sh all
-        echo -e "${GREEN}✅ Rebuild concluído${NC}"
-    else
-        echo "Operação cancelada"
-    fi
-}
-
-# Loop principal
-while true; do
-    show_banner
-    show_menu
-    read choice
-    
-    case $choice in
-        1) deploy_all ;;
-        2) deploy_base ;;
-        3) deploy_app ;;
-        4) deploy_email ;;
-        5) stop_all ;;
-        6) stop_app ;;
-        7) restart_app ;;
-        8) show_status ;;
-        9) show_logs ;;
-        10) monitor_realtime ;;
-        11) run_backup ;;
-        12) cleanup_docker ;;
-        13) update_images ;;
-        14) rebuild_all ;;
-        0) 
-            echo -e "${GREEN}👋 Até logo!${NC}"
-            exit 0
-            ;;
-        *)
-            echo -e "${RED}❌ Opção inválida!${NC}"
-            sleep 2
-            ;;
-    esac
-    
-    echo ""
-    echo -n -e "${YELLOW}Pressione Enter para continuar...${NC}"
-    read
-done
+        docker-compose up -d
+        log "✅ Rebuild concluído!"
+        ;;
+    5)
+        log "🏗️ Iniciando infraestrutura base..."
+        cd ../base
+        docker-compose up -d
+        log "✅ Base iniciada (Traefik + Portainer)!"
+        ;;
+    6)
+        log "🌟 Iniciando infraestrutura completa..."
+        cd ../base && docker-compose up -d
+        sleep 5
+        cd ../apps/assistente && docker-compose up -d
+        log "✅ Tudo iniciado!"
+        ;;
+    7)
+        log "🛑 Parando toda infraestrutura..."
+        cd ../apps/assistente && docker-compose down
+        cd ../base && docker-compose down  
+        log "✅ Tudo parado!"
+        ;;
+    8)
+        log "📊 Status geral:"
+        echo ""
+        echo "🏗️ INFRAESTRUTURA BASE:"
+        cd ../base && docker-compose ps
+        echo ""
+        echo "🤖 APLICAÇÃO ASSISTENTE:"
+        cd ../apps/assistente && docker-compose ps
+        ;;
+    9)
+        log "📋 Logs da API (tempo real):"
+        docker logs -f assistente_api
+        ;;
+    10)
+        log "📋 Logs do Worker (tempo real):"
+        docker logs -f assistente_worker
+        ;;
+    11)
+        log "📋 Logs de todos os serviços:"
+        cd ../apps/assistente
+        docker-compose logs --tail=50
+        ;;
+    12)
+        echo -n "Quantos workers? [1-8]: "
+        read workers
+        log "⚙️ Escalando para $workers workers..."
+        cd ../apps/assistente
+        docker-compose up -d --scale worker=$workers
+        log "✅ Workers escalados!"
+        ;;
+    13)
+        log "💾 Backup do PostgreSQL..."
+        timestamp=$(date +%Y%m%d_%H%M%S)
+        docker exec assistente_postgres pg_dump -U app_writer -d assistente > "../../backup_$timestamp.sql"
+        log "✅ Backup salvo: backup_$timestamp.sql"
+        ;;
+    14)
+        log "🐘 Conectando no PostgreSQL..."
+        docker exec -it assistente_postgres psql -U app_writer -d assistente
+        ;;
+    0)
+        log "👋 Até logo!"
+        exit 0
+        ;;
+    *)
+        error "Opção inválida!"
+        ;;
+esac

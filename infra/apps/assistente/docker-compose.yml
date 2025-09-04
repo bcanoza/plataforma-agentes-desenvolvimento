@@ -11,19 +11,19 @@ services:
       POSTGRES_USER: app_writer
       POSTGRES_PASSWORD: ${DB_PASS:-password}
       TZ: America/Sao_Paulo
-      PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./backups:/backups
+      - assistente_postgres_data:/var/lib/postgresql/data
+      - ./config/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
       - "5432:5432"
     networks:
       - assistente_network
+      - web
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U app_writer -d assistente"]
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 3
     logging:
       driver: "json-file"
       options:
@@ -38,8 +38,8 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
-      - ./config/redis.conf:/etc/redis/redis.conf
+      - assistente_redis_data:/data
+      - ./config/redis.conf:/etc/redis/redis.conf:ro
     networks:
       - assistente_network
     command: redis-server /etc/redis/redis.conf
@@ -47,7 +47,7 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 3
     logging:
       driver: "json-file"
       options:
@@ -74,7 +74,7 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - TZ=America/Sao_Paulo
       - INTERNAL_API_BASE=http://api:7000
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - APP_SECRET=${APP_SECRET:-changeme}
       - CORS_ORIGINS=${CORS_ORIGINS:-*}
     depends_on:
@@ -87,19 +87,19 @@ services:
       - web  # Para Traefik
     volumes:
       - ../../../app:/app
-      - api_logs:/app/logs
+      - assistente_api_logs:/app/logs
     command: uvicorn app.main:app --host 0.0.0.0 --port 7000 --reload
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7000/"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.assistente-api.rule=Host(`api.odontoapi.com`)"
       - "traefik.http.routers.assistente-api.tls=true"
       - "traefik.http.services.assistente-api.loadbalancer.server.port=7000"
       - "traefik.docker.network=web"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     logging:
       driver: "json-file"
       options:
@@ -123,7 +123,7 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - TZ=America/Sao_Paulo
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -133,7 +133,7 @@ services:
       - assistente_network
     volumes:
       - ../../../app:/app
-      - worker_logs:/app/logs
+      - assistente_worker_logs:/app/logs
     command: celery -A app.core.celery_app worker --loglevel=info --concurrency=4
     healthcheck:
       test: ["CMD", "celery", "-A", "app.core.celery_app", "inspect", "ping"]
@@ -172,8 +172,8 @@ services:
       - assistente_network
     volumes:
       - ../../../app:/app
-      - beat_logs:/app/logs
-      - beat_schedule:/app/celerybeat-schedule
+      - assistente_beat_logs:/app/logs
+      - assistente_beat_schedule:/app/celerybeat-schedule
     command: celery -A app.core.celery_app beat --loglevel=info --schedule=/app/celerybeat-schedule/celerybeat-schedule
     logging:
       driver: "json-file"
@@ -192,7 +192,6 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - TZ=America/Sao_Paulo
-      - FLOWER_PORT=5555
     ports:
       - "5555:5555"
     depends_on:
@@ -215,12 +214,12 @@ services:
         max-file: "3"
 
 volumes:
-  postgres_data:
-  redis_data:
-  api_logs:
-  worker_logs:
-  beat_logs:
-  beat_schedule:
+  assistente_postgres_data:
+  assistente_redis_data:
+  assistente_api_logs:
+  assistente_worker_logs:
+  assistente_beat_logs:
+  assistente_beat_schedule:
 
 networks:
   assistente_network:
