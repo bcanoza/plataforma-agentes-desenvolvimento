@@ -1,3 +1,6 @@
+# Docker Compose Simples (Compatibilidade)
+# ⚠️ ATENÇÃO: Use a nova estrutura em infra/ para produção!
+
 services:
   # Base de dados PostgreSQL
   postgres:
@@ -15,10 +18,6 @@ services:
       - "5432:5432"
     networks:
       - assistente_network
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "3"
 
   # Redis para Celery broker e cache
   redis:
@@ -29,10 +28,6 @@ services:
       - "6379:6379"
     networks:
       - assistente_network
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "3"
 
   # API REST principal
   api:
@@ -59,12 +54,7 @@ services:
       - assistente_network
     volumes:
       - ./app:/app
-      - api_logs:/app/logs
     command: uvicorn app.main:app --host 0.0.0.0 --port 7000 --reload
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "3"
 
   # Celery Worker para processar tarefas
   worker:
@@ -88,12 +78,7 @@ services:
       - assistente_network
     volumes:
       - ./app:/app
-      - worker_logs:/app/logs
     command: celery -A app.core.celery_app worker --loglevel=info --concurrency=4
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "3"
 
   # Celery Beat para agendamento de tarefas
   beat:
@@ -117,12 +102,7 @@ services:
       - assistente_network
     volumes:
       - ./app:/app
-      - beat_logs:/app/logs
     command: celery -A app.core.celery_app beat --loglevel=info
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "3"
 
   # Flower para monitoramento do Celery
   flower:
@@ -140,69 +120,10 @@ services:
     networks:
       - assistente_network
     command: celery -A app.core.celery_app flower --port=5555
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  # Traefik (proxy reverso)
-  traefik:
-    image: traefik:latest
-    container_name: traefik
-    restart: always
-    networks:
-      - web
-      - assistente_network
-    ports:
-      - 80:80
-      - 443:443
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /home/docker/traefik/traefik.toml:/traefik.toml:ro
-      - /home/docker/traefik/traefik_dynamic.toml:/traefik_dynamic.toml:ro
-      - /home/docker/traefik/acme.json:/acme.json:ro
-      - /home/docker/traefik/certs:/certs:ro
-      - /home/docker/app:/app:ro
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  # Portainer para gerenciamento
-  portainer:
-    image: portainer/portainer-ce:latest
-    container_name: portainer
-    restart: always
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /home/docker/portainer/data:/data
-    ports:
-      - 8000:8000
-      - 9000:9000
-      - 9443:9443
-    networks:
-      - web
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.portainer.rule=Host(`portainer.odontoapi.com`)"
-      - "traefik.http.routers.portainer.tls=true"
-#     - "traefik.http.routers.portainer.tls.certresolver=lets-encrypt"
-      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
-      - "traefik.docker.network=web"
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "3"
 
 volumes:
   postgres_data:
-  api_logs:
-  worker_logs:
-  beat_logs:
 
 networks:
-  web:
-    external: true
   assistente_network:
     driver: bridge
