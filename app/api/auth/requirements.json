@@ -1,0 +1,23 @@
+{
+  "description": "Dependências do módulo de autenticação",
+  "required": [
+    "pyjwt>=2.8.0,<3.0.0",
+    "cryptography>=41.0.0", 
+    "passlib[bcrypt]>=1.7.4",
+    "bcrypt>=4.0.0"
+  ],
+  "optional": [
+    "jwcrypto>=1.5.0"
+  ],
+  "conflicts": [],
+  "system_requirements": [
+    "openssl",
+    "libssl-dev"
+  ],
+  "notes": [
+    "pyjwt para geração/validação de tokens JWT",
+    "cryptography para chaves RSA e criptografia",
+    "passlib+bcrypt para hash seguro de senhas",
+    "jwcrypto opcional para features avançadas de JWT"
+  ]
+}
