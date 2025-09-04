@@ -59,6 +59,15 @@ Contratos são **regras bem definidas** que garantem:
 
 ---
 
+### **6. 🎛️ [Sistema de Gestão de Módulos](./module-management-system.md)**
+**O que define:** Como módulos são salvos, administrados e gerenciados no sistema.
+
+**Use quando:** Implementando registry persistente, DI centralizado, administração via API.
+
+**Exemplo prático:** Module registry, service container, admin APIs, configuração dinâmica.
+
+---
+
 ## 🚀 **Quick Start**
 
 ### **1. Criar Novo Módulo**
