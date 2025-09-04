@@ -1,129 +1,51 @@
-# Docker Compose Simples (Compatibilidade)
-# ⚠️ ATENÇÃO: Use a nova estrutura em infra/ para produção!
-
-services:
-  # Base de dados PostgreSQL
-  postgres:
-    image: postgres:15-alpine
-    container_name: assistente_postgres
+services:  
+  traefik:
+    image: traefik:latest
+    container_name: traefik
     restart: always
-    environment:
-      POSTGRES_DB: assistente
-      POSTGRES_USER: app_writer
-      POSTGRES_PASSWORD: password
-      TZ: America/Sao_Paulo
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - web
     ports:
-      - "5432:5432"
-    networks:
-      - assistente_network
-
-  # Redis para Celery broker e cache
-  redis:
-    image: redis:7-alpine
-    container_name: assistente_redis
-    restart: always
-    ports:
-      - "6379:6379"
-    networks:
-      - assistente_network
-
-  # API REST principal
-  api:
-    build: ./app
-    container_name: assistente_api
-    restart: always
-    ports:
-      - "7000:7000"
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=assistente
-      - DB_USER=app_writer
-      - DB_PASS=password
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - TZ=America/Sao_Paulo
-      - INTERNAL_API_BASE=http://api:7000
-    depends_on:
-      - postgres
-      - redis
-    networks:
-      - assistente_network
+      - 80:80
+      - 443:443
     volumes:
-      - ./app:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 7000 --reload
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /home/docker/traefik/traefik.toml:/traefik.toml:ro
+      - /home/docker/traefik/traefik_dynamic.toml:/traefik_dynamic.toml:ro
+      - /home/docker/traefik/acme.json:/acme.json:ro
+      - /home/docker/traefik/certs:/certs:ro
+      - /home/docker/app:/app:ro
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  # Celery Worker para processar tarefas
-  worker:
-    build: ./app
-    container_name: assistente_worker
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
     restart: always
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=assistente
-      - DB_USER=app_writer
-      - DB_PASS=password
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - TZ=America/Sao_Paulo
-    depends_on:
-      - postgres
-      - redis
-    networks:
-      - assistente_network
     volumes:
-      - ./app:/app
-    command: celery -A app.core.celery_app worker --loglevel=info --concurrency=4
-
-  # Celery Beat para agendamento de tarefas
-  beat:
-    build: ./app
-    container_name: assistente_beat
-    restart: always
-    environment:
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=assistente
-      - DB_USER=app_writer
-      - DB_PASS=password
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - TZ=America/Sao_Paulo
-    depends_on:
-      - postgres
-      - redis
-    networks:
-      - assistente_network
-    volumes:
-      - ./app:/app
-    command: celery -A app.core.celery_app beat --loglevel=info
-
-  # Flower para monitoramento do Celery
-  flower:
-    build: ./app
-    container_name: assistente_flower
-    restart: always
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - TZ=America/Sao_Paulo
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/docker/portainer/data:/data
     ports:
-      - "5555:5555"
-    depends_on:
-      - redis
+      - 8000:8000
+      - 9000:9000
+      - 9443:9443
     networks:
-      - assistente_network
-    command: celery -A app.core.celery_app flower --port=5555
-
-volumes:
-  postgres_data:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.odontoapi.com`)"
+      - "traefik.http.routers.portainer.tls=true"
+#     - "traefik.http.routers.portainer.tls.certresolver=lets-encrypt"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+      - "traefik.docker.network=web"
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
-  assistente_network:
-    driver: bridge
+  web:
+    external: true
