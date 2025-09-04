@@ -399,24 +399,30 @@ class PgModuleRepo:
     
     async def find_all(self) -> List[ModuleInfo]:
         """Lista todos os módulos."""
-        async with get_conn() as conn:
-            rows = await conn.fetch("SELECT * FROM modules ORDER BY display_order, name")
-            return [self._row_to_module(row) for row in rows]
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM modules ORDER BY display_order, name")
+                rows = cur.fetchall()
+                return [self._row_to_module(row) for row in rows]
     
     async def find_by_id(self, module_id: str) -> Optional[ModuleInfo]:
         """Busca módulo por ID."""
-        async with get_conn() as conn:
-            row = await conn.fetchrow("SELECT * FROM modules WHERE id = $1", module_id)
-            return self._row_to_module(row) if row else None
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT * FROM modules WHERE id = %s", (module_id,))
+                row = cur.fetchone()
+                return self._row_to_module(row) if row else None
     
     async def find_by_status(self, status: str) -> List[ModuleInfo]:
         """Lista módulos por status."""
-        async with get_conn() as conn:
-            rows = await conn.fetch(
-                "SELECT * FROM modules WHERE status = $1 ORDER BY display_order, name", 
-                status
-            )
-            return [self._row_to_module(row) for row in rows]
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT * FROM modules WHERE status = %s ORDER BY display_order, name", 
+                    (status,)
+                )
+                rows = cur.fetchall()
+                return [self._row_to_module(row) for row in rows]
     
     async def insert_module(self, **fields) -> ModuleInfo:
         """Insere novo módulo."""
@@ -427,7 +433,7 @@ class PgModuleRepo:
             fields["config"] = json.dumps(fields["config"])
         
         columns = ", ".join(fields.keys())
-        placeholders = ", ".join(f"${i+1}" for i in range(len(fields)))
+        placeholders = ", ".join(f"%s" for i in range(len(fields)))
         values = list(fields.values())
         
         query = f"""
@@ -436,9 +442,12 @@ class PgModuleRepo:
             RETURNING *
         """
         
-        async with get_conn() as conn:
-            row = await conn.fetchrow(query, *values)
-            return self._row_to_module(row)
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, values)
+                row = cur.fetchone()
+                conn.commit()
+                return self._row_to_module(row)
     
     async def update_module(self, module_id: str, **fields) -> Optional[ModuleInfo]:
         """Atualiza módulo existente."""

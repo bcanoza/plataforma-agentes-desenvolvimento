@@ -20,10 +20,16 @@ import sys
 from pathlib import Path
 
 # Add app to Python path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+app_path = Path(__file__).parent.parent.parent  # /workspace/app/app -> /workspace
+sys.path.insert(0, str(app_path))
 
-from app.controllers.db_controller import get_conn
-from app.core.logging_config import get_logger
+try:
+    from app.app.controllers.db_controller import get_conn
+    from app.app.core.logging_config import get_logger
+except ImportError as e:
+    print(f"❌ Erro importando dependências: {e}")
+    print("💡 Verifique se está no diretório correto e se a aplicação está configurada")
+    sys.exit(1)
 
 logger = get_logger(__name__)
 
@@ -286,47 +292,50 @@ DROP TABLE IF EXISTS modules CASCADE;
 """
 
 
-async def create_schema(drop_existing: bool = False):
+def create_schema(drop_existing: bool = False):
     """Cria schema de módulos no PostgreSQL."""
     
     logger.info("[module_schema] Criando schema de módulos...")
     
     try:
-        async with get_conn() as conn:
-            
-            if drop_existing:
-                logger.warning("[module_schema] Removendo tabelas existentes...")
-                await conn.execute(DROP_TABLES)
-            
-            # Criar tabelas
-            logger.info("[module_schema] Criando tabela 'modules'...")
-            await conn.execute(MODULES_TABLE)
-            
-            logger.info("[module_schema] Criando tabela 'module_dependencies'...")
-            await conn.execute(MODULE_DEPENDENCIES_TABLE)
-            
-            logger.info("[module_schema] Criando tabela 'module_services'...")
-            await conn.execute(MODULE_SERVICES_TABLE)
-            
-            logger.info("[module_schema] Criando tabela 'module_health_checks'...")
-            await conn.execute(MODULE_HEALTH_TABLE)
-            
-            # Criar índices
-            logger.info("[module_schema] Criando índices...")
-            await conn.execute(INDEXES)
-            
-            # Inserir dados iniciais
-            logger.info("[module_schema] Inserindo dados iniciais...")
-            await conn.execute(SAMPLE_DATA)
-            
-            logger.info("[module_schema] ✅ Schema criado com sucesso!")
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                
+                if drop_existing:
+                    logger.warning("[module_schema] Removendo tabelas existentes...")
+                    cur.execute(DROP_TABLES)
+                
+                # Criar tabelas
+                logger.info("[module_schema] Criando tabela 'modules'...")
+                cur.execute(MODULES_TABLE)
+                
+                logger.info("[module_schema] Criando tabela 'module_dependencies'...")
+                cur.execute(MODULE_DEPENDENCIES_TABLE)
+                
+                logger.info("[module_schema] Criando tabela 'module_services'...")
+                cur.execute(MODULE_SERVICES_TABLE)
+                
+                logger.info("[module_schema] Criando tabela 'module_health_checks'...")
+                cur.execute(MODULE_HEALTH_TABLE)
+                
+                # Criar índices
+                logger.info("[module_schema] Criando índices...")
+                cur.execute(INDEXES)
+                
+                # Inserir dados iniciais
+                logger.info("[module_schema] Inserindo dados iniciais...")
+                cur.execute(SAMPLE_DATA)
+                
+                conn.commit()
+                
+                logger.info("[module_schema] ✅ Schema criado com sucesso!")
             
     except Exception as e:
         logger.error(f"[module_schema] ❌ Erro criando schema: {e}")
         raise
 
 
-async def main():
+def main():
     """Função principal."""
     parser = argparse.ArgumentParser(description="Cria schema de registry de módulos")
     parser.add_argument("--drop-existing", action="store_true", help="Remove tabelas existentes antes de criar")
@@ -334,7 +343,7 @@ async def main():
     args = parser.parse_args()
     
     try:
-        await create_schema(drop_existing=args.drop_existing)
+        create_schema(drop_existing=args.drop_existing)
         
         print("\\n🎉 Schema de módulos criado!")
         print("\\n📋 Próximos passos:")
@@ -351,4 +360,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
