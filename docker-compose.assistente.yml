@@ -17,7 +17,7 @@ services:
       - "5432:5432"
     networks:
       - assistente_network
-      - web  # Para Traefik
+      - web  # Para conectar com Traefik
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U app_writer -d assistente"]
       interval: 30s
@@ -85,6 +85,11 @@ services:
       - "traefik.http.routers.assistente-api.tls=true"
       - "traefik.http.services.assistente-api.loadbalancer.server.port=7000"
       - "traefik.docker.network=web"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     logging:
       options:
         max-size: "10m"
@@ -121,7 +126,7 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  # Celery Beat para agendamento de tarefas
+  # Celery Beat para agendamento de tarefas  
   beat:
     build: ./app
     container_name: assistente_beat
@@ -191,3 +196,5 @@ volumes:
 networks:
   assistente_network:
     driver: bridge
+  web:
+    external: true

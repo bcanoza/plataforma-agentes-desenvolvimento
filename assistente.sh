@@ -1,16 +1,23 @@
 #!/bin/bash
 # Script principal para gerenciar a aplicação Assistente
-# Mantém o docker-compose.yml original (Traefik + Portainer) intacto
+# ✅ Preserva docker-compose.yml original (Traefik + Portainer)
+# 🤖 Gerencia docker-compose.assistente.yml (aplicação)
 
+clear
 echo "🤖 Gerenciador da Aplicação Assistente"
 echo "======================================"
 echo ""
+echo "📍 Localização: $(pwd)"
 
-# Verificar se estamos no diretório correto
+# Verificar arquivos necessários
 if [ ! -f "docker-compose.assistente.yml" ]; then
-    echo "❌ Arquivo docker-compose.assistente.yml não encontrado!"
-    echo "Execute este script na raiz do projeto onde está o arquivo."
+    echo "❌ docker-compose.assistente.yml não encontrado!"
+    echo "Certifique-se de estar na raiz do projeto."
     exit 1
+fi
+
+if [ ! -f "app/Dockerfile" ]; then
+    echo "⚠️ app/Dockerfile não encontrado. Será necessário criá-lo."
 fi
 
 # Cores
