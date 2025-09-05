@@ -1,0 +1,20 @@
+# Auto-generated requirements.txt
+# Generated for modules: auth, users
+# Generated at: 2025-09-04T01:32:03.162513Z
+
+# Core Framework
+fastapi
+pydantic
+pydantic-settings
+uvicorn
+
+# Authentication
+bcrypt>=4.0.0
+cryptography>=41.0.0
+passlib[bcrypt]>=1.7.4
+pyjwt>=2.8.0,<3.0.0
+
+# Database
+alembic
+psycopg2-binary
+sqlalchemy>=2.0

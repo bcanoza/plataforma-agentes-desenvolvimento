@@ -1,0 +1,1 @@
+# Auto-generated requirements.txt\n# Generated for modules: auth, users\n# Generated at: 2025-09-04T01:31:19.802356Z\n\n# Core Framework\nfastapi\npydantic\npydantic-settings\nuvicorn\n\n# Authentication\nbcrypt>=4.0.0\ncryptography>=41.0.0\npasslib[bcrypt]>=1.7.4\npyjwt>=2.8.0,<3.0.0\n\n# Database\nalembic\npsycopg2-binary\nsqlalchemy>=2.0\n

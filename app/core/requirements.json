@@ -1,0 +1,42 @@
+{
+  "description": "Dependências core do framework - necessárias para todos os módulos",
+  "required": [
+    "fastapi>=0.104.0,<1.0.0",
+    "uvicorn[standard]>=0.24.0",
+    "pydantic>=2.5.0,<3.0.0",
+    "pydantic-settings>=2.1.0"
+  ],
+  "database": [
+    "sqlalchemy>=2.0",
+    "alembic>=1.13.0",
+    "psycopg2-binary>=2.9.0"
+  ],
+  "infrastructure": [
+    "redis>=5.0.0",
+    "celery>=5.3.0",
+    "prometheus-fastapi-instrumentator>=6.1.0",
+    "fastapi-limiter>=0.1.5"
+  ],
+  "utilities": [
+    "httpx>=0.25.0",
+    "jsonschema>=4.20.0", 
+    "PyYAML>=6.0.1",
+    "loguru>=0.7.2"
+  ],
+  "development": [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.7.0"
+  ],
+  "notes": [
+    "fastapi+uvicorn são base do framework web",
+    "pydantic para validação de dados",
+    "database packages necessários para qualquer módulo que use BD",
+    "infrastructure para redis, celery, monitoramento",
+    "utilities são helpers comuns",
+    "development apenas para ambiente de desenvolvimento"
+  ]
+}
